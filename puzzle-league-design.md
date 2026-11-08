@@ -4,7 +4,7 @@ A private over-the-board puzzle tracker for one chess student. Not a product, no
 
 This document is the design spec. Where a number is unresolved it says so — do not invent a value to fill the gap. Ask or leave it configurable.
 
-**Revision 2 — 2026-11-08.** Decisions from the first review are folded into the sections below and listed in §9 *Decision log*. Status: design only, nothing built yet.
+**Revision 3 — 2026-11-08.** Decisions from the review are folded into the sections below and listed in §9 *Decision log*. Status: design only, nothing built yet.
 
 ---
 
@@ -107,11 +107,11 @@ A coach can change any grade **at any time**, including long after it was record
 
 The student can re-attempt any puzzle, including one he got wrong. A re-attempt:
 
-- earns **no XP** and does **not** change the rating;
-- does **not** count toward the monthly puzzle counts;
-- does **not** count toward Clean sheet or Hat-trick.
+- earns **no points of any kind** — no base XP and no bonus XP (Clean sheet, Hat-trick, Beat the clock, Called it himself);
+- does **not** change the rating;
+- does **not** count toward the monthly puzzle counts or the five-attempt session minimum.
 
-> **ASSUMED — confirm:** the three bullets above beyond "no points" were proposed and not yet explicitly confirmed.
+It is still recorded in his history, and he still sees the book's answer afterwards.
 
 ### XP
 
@@ -402,7 +402,7 @@ Do not build these, even if they seem like obvious additions:
 
 ## 9. Decision log
 
-Decisions taken in the first review (2026-11-08). The sections above already reflect them.
+Decisions taken in review (2026-11-08). The sections above already reflect them.
 
 | # | Topic | Decision |
 |---|---|---|
@@ -414,9 +414,9 @@ Decisions taken in the first review (2026-11-08). The sections above already ref
 | 6 | Daily cap and time zone | Cap of 120 includes bonuses. UK time (`Europe/London`). |
 | 7 | Relegation | One division at a time. |
 | 8 | Held at launch | Division 5, 4 and 3. |
-| 9 | Lego cadence | Roughly one bag per week. Bag count entered as config; strip pages nine bags at a time. |
+| 9 | Lego cadence | Roughly one bag per week (confirmed). Bag count entered as config; strip pages nine bags at a time. |
 | 10 | Answer checking | Student enters his line; app auto-checks against the book's answer key; coach confirms or changes in a one-tap queue. Book answer shown to the student after submitting. Answer key extracted from the owner's ebook. |
-| 11 | Re-attempts | Allowed, no XP and no rating change. Not counting toward monthly counts, Clean sheet or Hat-trick is **assumed — confirm**. |
+| 11 | Re-attempts | Allowed. No points of any kind (base or bonus XP), no rating change, not counted toward monthly puzzle counts or the session minimum (confirmed). |
 | 12 | Stack | Vercel + Google Sheets, server-side access via a service account, three password logins. |
 
 ### Still open
@@ -425,4 +425,3 @@ Decisions taken in the first review (2026-11-08). The sections above already ref
 - Calibration of the difficulty → rating table.
 - XP-per-bag milestone (after two weeks of data).
 - Season puzzle-count thresholds (after the first fortnight).
-- Confirmation of the re-attempt assumptions in row 11.
