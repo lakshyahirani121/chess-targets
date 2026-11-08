@@ -1,0 +1,33 @@
+{
+  "name": "Puzzle League — new attempt to review",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "puzzle-league-attempt",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "name": "Attempt submitted",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "puzzle-league-attempt"
+    },
+    {
+      "parameters": {
+        "chatId": "REPLACE_WITH_YOUR_TELEGRAM_CHAT_ID",
+        "text": "={{ $json.body.student }} finished puzzle {{ $json.body.puzzle_id }} — auto-check says {{ $json.body.provisional_grade.toUpperCase() }}.\nLine: {{ $json.body.line }}\nPlaying for: {{ $json.body.objective || '—' }}{{ $json.body.hint_used ? '\\nHint used' : '' }}{{ $json.body.self_called_wrong ? '\\nHe called it wrong himself' : '' }}\n{{ $json.body.review_url ? 'Review: ' + $json.body.review_url : '' }}",
+        "additionalFields": {}
+      },
+      "name": "Notify coaches",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [260, 0]
+    }
+  ],
+  "connections": {
+    "Attempt submitted": { "main": [[{ "node": "Notify coaches", "type": "main", "index": 0 }]] }
+  },
+  "settings": {}
+}

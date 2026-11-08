@@ -1,0 +1,13 @@
+{
+  "name": "puzzle-league",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Private over-the-board puzzle tracker for one chess student and two coaches.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "node server.js",
+    "test": "node --test test/*.test.js",
+    "seed-demo": "node scripts/seed-demo.js"
+  }
+}

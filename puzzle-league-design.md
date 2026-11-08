@@ -4,7 +4,7 @@ A private over-the-board puzzle tracker for one chess student. Not a product, no
 
 This document is the design spec. Where a number is unresolved it says so — do not invent a value to fill the gap. Ask or leave it configurable.
 
-**Revision 3 — 2026-11-08.** Decisions from the review are folded into the sections below and listed in §9 *Decision log*. Status: design only, nothing built yet.
+**Revision 4 — 2026-11-08.** Decisions from the review are folded into the sections below and listed in §9 *Decision log*. Status: **built** — see `docs/ARCHITECTURE.md` for how and `docs/SETUP.md` to deploy.
 
 ---
 
@@ -131,7 +131,7 @@ Bonuses:
 |---|---|---|
 | Clean sheet | a session with zero wrong (see *Session* below) | +15 |
 | Hat-trick | three full results in a row, repeatable within a session | +10 |
-| Beat the clock | solved inside the puzzle's set time (only if that puzzle has one) | +3 |
+| Beat the clock | a Full result inside the puzzle's set time (only if that puzzle has one) | +3 |
 | Called it himself | he ticks "I think this is wrong" before submitting, and the final grade is Wrong | +5 |
 
 **Session.** A session is all of the student's first attempts in one UK calendar day. A session needs at least **5** first attempts to qualify for Clean sheet (editable config). This stops a single easy puzzle from earning +15 every day.
@@ -162,7 +162,7 @@ Student-facing ladder. The rating number itself is never shown to the student.
 
 **At launch** Division 5, 4 and 3 count as held (he starts in Division 3). Division 2, Division 1, Premier and Hall of fame are locked until he reaches them.
 
-Promotion is immediate on crossing a band. **Relegation only after two consecutive calendar months ending below the band, and it drops exactly one division** — never more, however far the rating has fallen. One bad month is noise. Month-end ratings are snapshotted (UK time) for this check.
+Promotion is immediate on crossing a band. **Relegation only after two consecutive calendar months ending below the band, and it drops exactly one division** — never more, however far the rating has fallen. One bad month is noise. Month-end ratings (UK time) are derived by replaying the attempt log, so no snapshot job is needed.
 
 ### Rewards
 
@@ -218,11 +218,12 @@ The same applies to the **answer key**: no answer for a puzzle may reach the stu
 ## 3. Technical setup
 
 - **Hosting:** Vercel.
-- **Data:** a Google Sheet, one tab per data type: puzzles, answer key, attempts, config, rewards, month-end snapshots.
+- **Data:** a Google Sheet with five tabs: `puzzles` (including the answer key), `attempts`, `config` (dated change history), `awards` (manual XP) and `handovers` (physical rewards given). Rating, XP, divisions, bags and season progress are never stored; they are recomputed from these on every request.
 - **Sheet access is server-side only.** The app's server functions read and write the sheet through a Google Cloud service account. The server strips the rating and any unrevealed answers before responding to the student account.
 - **Never share the Google Sheet with the student's Google account.** He could open it and see the rating and every answer.
 - **Logins:** three fixed accounts with passwords stored as Vercel environment variables; a signed session cookie identifies the role.
-- **Setup steps (when building starts):** create a Google Cloud service account, share the sheet with it, and add its credentials and the three passwords to Vercel's environment settings.
+- **Setup steps:** see `docs/SETUP.md`.
+- **n8n (optional):** a webhook pings the coaches when an attempt is submitted (`n8n/attempt-notify.workflow.json`). No scheduled jobs are needed.
 
 ---
 
@@ -419,9 +420,28 @@ Decisions taken in review (2026-11-08). The sections above already reflect them.
 | 11 | Re-attempts | Allowed. No points of any kind (base or bonus XP), no rating change, not counted toward monthly puzzle counts or the session minimum (confirmed). |
 | 12 | Stack | Vercel + Google Sheets, server-side access via a service account, three password logins. |
 
+### Implementation decisions (build, 2026-11-08)
+
+Mechanical details the spec left open, decided during the build:
+
+| Topic | Decision |
+|---|---|
+| Provisional grades | Count immediately (the student sees XP right after Finish); a coach confirmation or change re-runs the replay. |
+| XP rounding | Whole XP per attempt, rounded half up (5 × 0.5 = 2.5 → 3). |
+| Hat-trick | Every third consecutive Full in a day pays +10, then the run restarts. A Partial or Wrong resets it. |
+| Beat the clock | Needs a Full result inside the set time. |
+| Clean sheet timing | Awarded when the UK day closes (midnight), so a later wrong answer that day never takes back XP already shown. Added last in the day, so it can be clipped by the cap. |
+| Manual coach XP | Coaches can award XP with a reason. It counts toward the daily cap and can be removed. |
+| Answer alternatives | The answer key may list several main lines separated by `\|`. |
+| Unset bag milestone | XP keeps accumulating; bags start releasing once the milestone is set. |
+| Login | Password only; which of the three passwords matches decides the account. |
+| Student wording | Season conditions are shown as "Held your level this month" / "A real step up in level" — the word "rating" never appears on his screen. |
+| Light theme | Yellow *text* uses a darker gold token (`--effort-ink`) for contrast; bars and bricks keep `--effort`. |
+
 ### Still open
 
 - Difficulty scale (stars vs labels) — check the ebook's key page.
 - Calibration of the difficulty → rating table.
 - XP-per-bag milestone (after two weeks of data).
 - Season puzzle-count thresholds (after the first fortnight).
+- Total bag count of the chosen Lego set.
